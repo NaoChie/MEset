@@ -1,8 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { View, Button, StyleSheet, TextInput, Keyboard, Text } from 'react-native';
+import { View, Button, StyleSheet, TextInput, Keyboard, Text, TouchableOpacity, Image } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Alert } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+
+const Stack = createStackNavigator();
+
+function BreakScreen({ navigation }) {
+  return (
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <Text>Notification Screen</Text>
+      <Button
+        title="Go Back"
+        onPress={() => navigation.goBack()}
+      />
+    </View>
+  );
+}
+
+function formatAlarmTime(date) {
+  const options = {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+  };
+  return date.toLocaleString(undefined, options);
+}
 
 const activities = [
   'Yoga',
@@ -21,17 +49,22 @@ const activities = [
   'Yard work'
 ];
 
+const getRandomActivities = () => {
+  const shuffledActivities = activities.sort(() => 0.5 - Math.random());
+  return shuffledActivities.slice(0, 3);
+};
+
 export default function App() {
   const [notificationToken, setNotificationToken] = useState(null);
   const [alarmTime, setAlarmTime] = useState(null);
   const [showDateTimePicker, setShowDateTimePicker] = useState(false);
+  const [randomActivities, setRandomActivities] = useState([]);
+  const [countdown, setCountdown] = useState(0);
 
   useEffect(() => {
-    // Request permissions for notifications
     registerForPushNotificationsAsync();
-
-    // Handle notifications when app is open
     Notifications.addNotificationReceivedListener(handleNotification);
+    setRandomActivities(getRandomActivities());
   }, []);
 
   const registerForPushNotificationsAsync = async () => {
@@ -46,7 +79,7 @@ export default function App() {
 
   const handleNotification = notification => {
     console.log('Received notification:', notification);
-    // Handle the notification here
+    setCountdown(15 * 60); // Start the 15-minute countdown
   };
 
   const handleDateChange = (event, selectedDate) => {
@@ -56,13 +89,17 @@ export default function App() {
     }
   };
 
+  const regenerateRandomActivities = () => {
+    setRandomActivities(getRandomActivities());
+  };
+
   const showPicker = () => {
     setShowDateTimePicker(true);
   };
 
   const scheduleNotification = async () => {
-    Alert.alert('Alarm Scheduled', `Break scheduled for ${alarmTime}!`);
-    Keyboard.dismiss(); // Hide the keyboard
+    Alert.alert('Alarm Scheduled', `Break scheduled for ${formatAlarmTime(alarmTime)}!`);
+    Keyboard.dismiss();
     if (alarmTime) {
       const trigger = new Date(alarmTime);
       const now = new Date();
@@ -74,6 +111,7 @@ export default function App() {
           content: {
             title: 'Alarm',
             body: 'Break, activated!',
+            sound: 'default', // Use the default notification sound
           },
           trigger: {
             seconds: secondsUntilNotification,
@@ -82,6 +120,9 @@ export default function App() {
         });
 
         console.log('Notification scheduled:', identifier);
+
+        // Navigate to the BreakScreen
+        navigation.navigate('Notification');
       } else {
         console.log('Selected date and time is in the past.');
       }
@@ -90,12 +131,43 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    if (countdown > 0) {
+      const countdownInterval = setInterval(() => {
+        setCountdown(prevCountdown => prevCountdown - 1);
+      }, 1000);
+
+      return () => {
+        clearInterval(countdownInterval);
+        if (countdown === 0) {
+          Alert.alert('Done!', '15 minutes have passed.');
+        }
+      };
+    }
+  }, [countdown]);
+
+  const countdownNotification = () => {
+    if (countdown === 0) {
+      Notifications.presentLocalNotificationAsync({
+        title: 'Countdown Complete',
+        body: '15 minutes have passed!',
+        sound: 'default', // Use the default notification sound
+      });
+    }
+  };
+
   return (
     <View style={styles.container}>
+      <View style={styles.imageContainer}>
+        <Image
+          source={require('./Logo.png')}
+          style={styles.image}
+        />
+      </View>
       <TextInput
         style={styles.input}
         placeholder="Select date & time for your next break"
-        value={alarmTime ? alarmTime.toString() : ''}
+        value={alarmTime ? formatAlarmTime(alarmTime) : ''}
         editable={false}
         onTouchStart={showPicker}
       />
@@ -107,13 +179,24 @@ export default function App() {
           onChange={handleDateChange}
         />
       )}
-      <Text style={styles.header}>Activities:</Text>
+      <Button title="Schedule" onPress={scheduleNotification} />
+      
+      <Text style={styles.header}>Try one of these today...</Text>
       <View>
-        {activities.map((activity, index) => (
+        {randomActivities.map((activity, index) => (
           <Text key={index}>{`\u2022 ${activity}`}</Text>
-        ))}
+        ))
+        }
       </View>
-      <Button title="Schedule A Break" onPress={scheduleNotification} />
+
+      <TouchableOpacity onPress={regenerateRandomActivities} style={styles.regenerateButton}>
+        <Text style={styles.regenerateButtonText}>Regenerate</Text>
+      </TouchableOpacity>
+      <View>
+        {countdown > 0 && (
+          <Text style={styles.countdownText}>{`${Math.floor(countdown / 60)}:${countdown % 60} Minutes left! You got it!`}</Text>
+        )}
+      </View>
     </View>
   );
 }
@@ -125,6 +208,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
+  imageContainer: {
+    marginBottom: 10,
+  },
+  image: {
+    width: 400,
+    height: 150,
+  },
   input: {
     height: 40,
     borderColor: 'gray',
@@ -132,5 +222,25 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: '80%',
     textAlign: 'center',
+  },
+  header: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  regenerateButton: {
+    backgroundColor: 'blue',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  regenerateButtonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  countdownText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
   },
 });
