@@ -6,6 +6,7 @@
 
 - [Features](#features)
 - [Getting Started](#getting-started)
+- [Future features/current bugs](#future-features/current-bugs)
 
 ## Features
 
@@ -23,3 +24,10 @@
 3. Start the app:
     cd ./your-path/SoftEng_Andrew
     npx expo start
+
+## Future features/current bugs
+
+1. Notifications are not being recieved properly by token. Will prioritize so countdown can appear and be set at will.
+2. App will be split into two pages, where user will be first recieved by break scheduler, and then break activity/countdown.
+3. Alarm sounds will be amplified and played for longer periods of time.
+4. Recommended activities, set alarm, and break length will be editable.
