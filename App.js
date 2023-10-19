@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Button, StyleSheet, TextInput, Keyboard, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Button, StyleSheet, TextInput, Keyboard, Text, TouchableOpacity, Image, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Alert } from 'react-native';
 
-function formatAlarmTime(date) {
+function formatAlarmTime(date) { // Function that formats date and time, returned in order
   const options = {
     weekday: 'long',
     month: 'long',
@@ -16,7 +15,7 @@ function formatAlarmTime(date) {
   return date.toLocaleString(undefined, options);
 }
 
-const activities = [
+const activities = [ // Can be edited. Ideas for "deep focus" and lack of distraction but still productive
   'Yoga',
   'Reading an interesting book',
   'Folding/doing laundry',
@@ -33,7 +32,7 @@ const activities = [
   'Yard work'
 ];
 
-const getRandomActivities = () => {
+const getRandomActivities = () => { // Shuffling and generating 3 random activities to be displayed
   const shuffledActivities = activities.sort(() => 0.5 - Math.random());
   return shuffledActivities.slice(0, 3);
 };
@@ -51,7 +50,7 @@ export default function App() {
     setRandomActivities(getRandomActivities());
   }, []);
 
-  const registerForPushNotificationsAsync = async () => {
+  const registerForPushNotificationsAsync = async () => { // Make sure notification permissions are on
     const { status } = await Notifications.requestPermissionsAsync();
     if (status === 'granted') {
       const token = (await Notifications.getExpoPushTokenAsync()).data;
@@ -61,19 +60,19 @@ export default function App() {
     }
   };
 
-  const handleNotification = notification => {
+  const handleNotification = notification => { // What happens when the break notification goes off
     console.log('Received notification:', notification);
     setCountdown(15 * 60); // Start the 15-minute countdown
   };
 
-  const handleDateChange = (event, selectedDate) => {
+  const handleDateChange = (event, selectedDate) => { // Hide the DateTimePicker when a date is selected
     setShowDateTimePicker(false);
-    if (selectedDate) {
+    if (selectedDate) { // Set the selected date and time as the alarm time
       setAlarmTime(selectedDate);
     }
   };
 
-  const regenerateRandomActivities = () => {
+  const regenerateRandomActivities = () => { // Constant for regenerating activity button
     setRandomActivities(getRandomActivities());
   };
 
@@ -81,7 +80,7 @@ export default function App() {
     setShowDateTimePicker(true);
   };
 
-  const scheduleNotification = async () => {
+  const scheduleNotification = async () => { // Set up notifications and what happens when triggered
     if (alarmTime) {
       const trigger = new Date(alarmTime);
       const now = new Date();
@@ -93,7 +92,7 @@ export default function App() {
         const secondsUntilNotification = Math.round((trigger - now) / 1000);
 
         const identifier = await Notifications.scheduleNotificationAsync({
-          content: {
+          content: { // Might've needed a token recipient here, but couldn't get working
             title: 'Alarm',
             body: 'Break, activated! Pick an activity now.',
           },
@@ -105,7 +104,7 @@ export default function App() {
 
         console.log('Notification scheduled:', identifier);
       } else {
-        console.log('Selected date and time is in the past.');
+        console.log('Selected date and time is in the past.'); // Check for unaccepted inputs
         Alert.alert('Failed.', `Selected date and time is in the past.`);
       }
     } else {
@@ -114,7 +113,7 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
+  useEffect(() => { // Step function that checks break countdown time
     if (countdown > 0) {
       const countdownInterval = setInterval(() => {
         setCountdown(prevCountdown => prevCountdown - 1);
@@ -129,7 +128,7 @@ export default function App() {
     }
   }, [countdown]);
 
-  return (
+  return ( // Visual style formatting
     <View style={styles.container}>
       <View style={styles.imageContainer}>
         <Image
@@ -164,17 +163,12 @@ export default function App() {
       <TouchableOpacity onPress={regenerateRandomActivities} style={styles.regenerateButton}>
         <Text style={styles.regenerateButtonText}>Regenerate</Text>
       </TouchableOpacity>
-      
-      <View>
-        {countdown > 0 && (
-          <Text style={styles.countdownText}>{`${Math.floor(countdown / 60)}:${countdown % 60} More minutes! You can do it.`}</Text>
-        )}
-      </View>
+      <Text style={styles.countdownText}>{`${Math.floor(countdown / 60)}:${countdown % 60} Break minutes left!`}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create({ 
   container: {
     flex: 1,
     justifyContent: 'center',
