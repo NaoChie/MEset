@@ -82,19 +82,20 @@ export default function App() {
   };
 
   const scheduleNotification = async () => {
-    Alert.alert('Alarm Scheduled', `Break scheduled for ${formatAlarmTime(alarmTime)}!`);
-    Keyboard.dismiss();
     if (alarmTime) {
       const trigger = new Date(alarmTime);
       const now = new Date();
 
       if (trigger > now) {
+        Alert.alert('Alarm Scheduled', `Break scheduled for ${formatAlarmTime(alarmTime)}!`);
+        Keyboard.dismiss();
+
         const secondsUntilNotification = Math.round((trigger - now) / 1000);
 
         const identifier = await Notifications.scheduleNotificationAsync({
           content: {
             title: 'Alarm',
-            body: 'Break, activated!',
+            body: 'Break, activated! Pick an activity now.',
           },
           trigger: {
             seconds: secondsUntilNotification,
@@ -105,9 +106,11 @@ export default function App() {
         console.log('Notification scheduled:', identifier);
       } else {
         console.log('Selected date and time is in the past.');
+        Alert.alert('Failed.', `Selected date and time is in the past.`);
       }
     } else {
       console.log('Please select a date and time for the alarm.');
+      Alert.alert('Please select a date and time for the alarm.');
     }
   };
 
@@ -120,7 +123,7 @@ export default function App() {
       return () => {
         clearInterval(countdownInterval);
         if (countdown === 0) {
-          Alert.alert('Countdown Finished', '15 minutes has passed.');
+          Alert.alert('Time flew by.', '15 minutes has passed.', 'Please schedule another break!');
         }
       };
     }
