@@ -3,22 +3,6 @@ import { View, Button, StyleSheet, TextInput, Keyboard, Text, TouchableOpacity, 
 import * as Notifications from 'expo-notifications';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Alert } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-
-const Stack = createStackNavigator();
-
-function BreakScreen({ navigation }) {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>Notification Screen</Text>
-      <Button
-        title="Go Back"
-        onPress={() => navigation.goBack()}
-      />
-    </View>
-  );
-}
 
 function formatAlarmTime(date) {
   const options = {
@@ -111,7 +95,6 @@ export default function App() {
           content: {
             title: 'Alarm',
             body: 'Break, activated!',
-            sound: 'default', // Use the default notification sound
           },
           trigger: {
             seconds: secondsUntilNotification,
@@ -120,9 +103,6 @@ export default function App() {
         });
 
         console.log('Notification scheduled:', identifier);
-
-        // Navigate to the BreakScreen
-        navigation.navigate('Notification');
       } else {
         console.log('Selected date and time is in the past.');
       }
@@ -140,21 +120,11 @@ export default function App() {
       return () => {
         clearInterval(countdownInterval);
         if (countdown === 0) {
-          Alert.alert('Done!', '15 minutes have passed.');
+          Alert.alert('Countdown Finished', '15 minutes has passed.');
         }
       };
     }
   }, [countdown]);
-
-  const countdownNotification = () => {
-    if (countdown === 0) {
-      Notifications.presentLocalNotificationAsync({
-        title: 'Countdown Complete',
-        body: '15 minutes have passed!',
-        sound: 'default', // Use the default notification sound
-      });
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -180,7 +150,6 @@ export default function App() {
         />
       )}
       <Button title="Schedule" onPress={scheduleNotification} />
-      
       <Text style={styles.header}>Try one of these today...</Text>
       <View>
         {randomActivities.map((activity, index) => (
@@ -192,9 +161,10 @@ export default function App() {
       <TouchableOpacity onPress={regenerateRandomActivities} style={styles.regenerateButton}>
         <Text style={styles.regenerateButtonText}>Regenerate</Text>
       </TouchableOpacity>
+      
       <View>
         {countdown > 0 && (
-          <Text style={styles.countdownText}>{`${Math.floor(countdown / 60)}:${countdown % 60} Minutes left! You got it!`}</Text>
+          <Text style={styles.countdownText}>{`${Math.floor(countdown / 60)}:${countdown % 60} More minutes! You can do it.`}</Text>
         )}
       </View>
     </View>
