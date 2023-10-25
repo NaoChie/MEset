@@ -21,12 +21,14 @@
    git clone https://github.com/NaoChie/SoftEng_Andrew.git
 3. Find and open app, navigate to app: 
     cd SoftEng_Andrew
-2. Install dependencies:
+4. Install dependencies:
     npx expo install expo-notifications
     npx expo install @react-native-community/datetimepicker
-3. Start the app:
+5. Install ExpoGo app on phone (Find on app store)
+6. Start the app:
     cd ./your-path/SoftEng_Andrew
     npx expo start
+7. Use phone camera to scan QR code found in terminal
 
 ## Future features/current bugs
 
