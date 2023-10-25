@@ -16,8 +16,11 @@
 
 ## Getting Started
 
-1. Clone the repository:
+1. Create account on ExpoGo https://expo.dev/
+2. Clone the repository:
    git clone https://github.com/NaoChie/SoftEng_Andrew.git
+3. Find and open app, navigate to app: 
+    cd SoftEng_Andrew
 2. Install dependencies:
     npx expo install expo-notifications
     npx expo install @react-native-community/datetimepicker
