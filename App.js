@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 import { View, Button, StyleSheet, TextInput, Keyboard, Text, TouchableOpacity, Image, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import DateTimePicker from '@react-native-community/datetimepicker';
+
 
 function formatAlarmTime(date) { // Function that formats date and time, returned in order
   const options = {
@@ -44,6 +45,12 @@ export default function App() {
   const [randomActivities, setRandomActivities] = useState([]);
   const [countdown, setCountdown] = useState(0);
 
+  //Update - New States for adding new activities and changing breaktime
+  const [showMenu, setShowMenu] = useState(false);
+  const [newActivity, setNewActivity] = useState('');
+  const breakTimePickerRef = useRef(null);
+
+
   useEffect(() => {
     registerForPushNotificationsAsync();
     Notifications.addNotificationReceivedListener(handleNotification);
@@ -77,9 +84,36 @@ export default function App() {
   };
 
   const showPicker = () => {
-    setShowDateTimePicker(true);
+    setShowDateTimePicker(true); 
+  };
+  const addNewActivity = () => { // Add input to activity list 
+    if (newActivity.trim() !== '') {
+      setActivities([...activities, newActivity]);
+      setNewActivity('');
+    }
   };
 
+  const handleBreakTimeChange = (_, selectedTime) => { // Set New Breaktime based on input value 
+    if (selectedTime) {
+      setNewBreakTime(selectedTime);
+    }
+  };
+
+  const updateBreakTime = () => {
+    if (newBreakTime) {
+      setAlarmTime(newBreakTime);
+      setShowMenu(false); // Hide the menu after updating break time
+    }
+  };
+  
+  // Use useEffect to focus on the DateTimePicker when the menu is shown
+  useEffect(() => {
+    if (showMenu) {
+      breakTimePickerRef.current?.focus(); // Assuming the DateTimePicker supports the 'focus' method
+    } else {
+      Keyboard.dismiss(); // Dismiss the keyboard when hiding the menu
+    }
+  }, [showMenu]);
   const scheduleNotification = async () => { // Set up notifications and what happens when triggered
     if (alarmTime) {
       const trigger = new Date(alarmTime);
@@ -145,6 +179,7 @@ export default function App() {
       />
       {showDateTimePicker && (
         <DateTimePicker
+          ref={breakTimePickerRef}
           value={alarmTime ? alarmTime : new Date()}
           mode="datetime"
           display="default"
@@ -164,7 +199,36 @@ export default function App() {
         <Text style={styles.regenerateButtonText}>Regenerate</Text>
       </TouchableOpacity>
       <Text style={styles.countdownText}>{`${Math.floor(countdown / 60)}:${countdown % 60} Break minutes left!`}</Text>
+
+      {showMenu && (
+        <View style={styles.menuContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Add new activity"
+            value={newActivity}
+            onChangeText={(text) => setNewActivity(text)}
+          />
+          <TouchableOpacity onPress={addNewActivity}>
+            <Text style={styles.addButton}>Add Activity</Text>
+          </TouchableOpacity>
+          <DateTimePicker
+            value={newBreakTime ? newBreakTime : new Date()}
+            mode="time"
+            display="default"
+            onChange={handleBreakTimeChange}
+          />
+          <TouchableOpacity onPress={updateBreakTime}>
+            <Text style={styles.updateButton}>Update Break Time</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      <TouchableOpacity onPress={() => setShowMenu(!showMenu)}>
+        <Text style={styles.toggleMenu}>{showMenu ? 'Hide Menu' : 'Show Menu'}</Text>
+      </TouchableOpacity>
     </View>
+
+
   );
 }
 
