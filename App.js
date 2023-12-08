@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef} from 'react';
 import { View, Button, StyleSheet, TextInput, Keyboard, Text, TouchableOpacity, Image, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import DateTimePicker from '@react-native-community/datetimepicker';
-
+import {Picker} from '@react-native-picker/picker';
 
 function formatAlarmTime(date) { // Function that formats date and time, returned in order
   const options = {
@@ -49,8 +49,21 @@ export default function App() {
   const [showMenu, setShowMenu] = useState(false);
   const [newActivity, setNewActivity] = useState('');
   const breakTimePickerRef = useRef(null);
+  const [deletedActivity, setDeletedActivity] = useState('');
+  var newBreakTime
+  const [selectedActivityToDelete, setSelectedActivityToDelete] = useState(null);
 
-
+  const deleteActivity = () => {
+    if (selectedActivityToDelete) {
+      const updatedActivities = activities.filter(activity => activity !== selectedActivityToDelete);
+      setAllActivities(updatedActivities);
+      setSelectedActivityToDelete(null);
+      Alert.alert('Activity Deleted', `The activity "${selectedActivityToDelete}" has been deleted.`);
+    } else {
+      Alert.alert('No Activity Selected', 'Please select an activity to delete.');
+    }
+  };
+  
   useEffect(() => {
     registerForPushNotificationsAsync();
     Notifications.addNotificationReceivedListener(handleNotification);
@@ -86,22 +99,32 @@ export default function App() {
   const showPicker = () => {
     setShowDateTimePicker(true); 
   };
+
   const addNewActivity = () => { // Add input to activity list 
     if (newActivity.trim() !== '') {
       setActivities([...activities, newActivity]);
       setNewActivity('');
     }
   };
-
+  const setActivities = () => {
+    activities.push(newActivity)
+  };
+  const setAllActivities = (updatedActivities) => {
+    activities.length = 0;
+    activities.push(...updatedActivities)
+  }
+  const setNewBreakTime = (_, newBreakTime) => {
+    updateBreakTime(newBreakTime)
+  };
   const handleBreakTimeChange = (_, selectedTime) => { // Set New Breaktime based on input value 
     if (selectedTime) {
       setNewBreakTime(selectedTime);
     }
   };
-
-  const updateBreakTime = () => {
+  const updateBreakTime = (_, newBreakTime) => {
     if (newBreakTime) {
       setAlarmTime(newBreakTime);
+      Alert.alert('Alarm time updated.', `Break scheduled for ${formatAlarmTime(newBreakTime)}!`);
       setShowMenu(false); // Hide the menu after updating break time
     }
   };
@@ -198,29 +221,42 @@ export default function App() {
       <TouchableOpacity onPress={regenerateRandomActivities} style={styles.regenerateButton}>
         <Text style={styles.regenerateButtonText}>Regenerate</Text>
       </TouchableOpacity>
-      <Text style={styles.countdownText}>{`${Math.floor(countdown / 60)}:${countdown % 60} Break minutes left!`}</Text>
-
+        <Text style={styles.countdownText}>{`${Math.floor(countdown / 60)}:${countdown % 60} Break minutes left!`}</Text>
       {showMenu && (
-        <View style={styles.menuContainer}>
+        <View style={styles.container}>
           <TextInput
             style={styles.input}
-            placeholder="Add new activity"
+            placeholder="Add New Activity"
             value={newActivity}
             onChangeText={(text) => setNewActivity(text)}
           />
-          <TouchableOpacity onPress={addNewActivity}>
-            <Text style={styles.addButton}>Add Activity</Text>
+          <TouchableOpacity onPress={addNewActivity} style={styles.addNewActivityButton}>
+            <Text style={styles.addNewActivityButtonText}>Add Activity</Text>
           </TouchableOpacity>
-          <DateTimePicker
+          <Picker
+            style={styles.picker}
+            selectedValue={selectedActivityToDelete}
+            onValueChange={(itemValue) => setSelectedActivityToDelete(itemValue)}
+          >
+            <Picker.Item label="Select activity to delete" value={null} />
+            {activities.map((activity, index) => (
+              <Picker.Item key={index} label={activity} value={activity} />
+            ))}
+          </Picker>
+          <TouchableOpacity onPress={deleteActivity} style={styles.addNewActivityButton}>
+            <Text style={styles.addNewActivityButtonText}>Delete Activity</Text>
+          </TouchableOpacity>
+          <DateTimePicker style={styles.dateTime}
             value={newBreakTime ? newBreakTime : new Date()}
             mode="time"
             display="default"
             onChange={handleBreakTimeChange}
           />
-          <TouchableOpacity onPress={updateBreakTime}>
-            <Text style={styles.updateButton}>Update Break Time</Text>
+          <TouchableOpacity onPress={updateBreakTime} style={styles.addNewActivityButton}>
+            <Text style={styles.addNewActivityButtonText}>Update Break Time</Text>
           </TouchableOpacity>
         </View>
+         
       )}
 
       <TouchableOpacity onPress={() => setShowMenu(!showMenu)}>
@@ -233,6 +269,13 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({ 
+  dateTime: {
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  toggleMenu: {
+    fontStyle: 'italic'
+  },
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -241,17 +284,19 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     marginBottom: 10,
+    alignItems: 'center',
   },
   image: {
     width: 400,
     height: 150,
+    alignItems: 'center',
   },
   input: {
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
-    marginBottom: 20,
-    width: '80%',
+    borderRadius: 5,
+    marginBottom: 10,
     textAlign: 'center',
   },
   header: {
@@ -262,16 +307,37 @@ const styles = StyleSheet.create({
   regenerateButton: {
     backgroundColor: 'blue',
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 10,
     marginTop: 20,
   },
   regenerateButtonText: {
     color: 'white',
     fontSize: 16,
+    textAlign: 'center',
+  },
+  addNewActivityButton: {
+    backgroundColor: '#9cc2ff',
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  addNewActivityButtonText: {
+    color: 'black',
+    fontSize: 16,
+    textAlign: 'center',
   },
   countdownText: {
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 20,
+    marginBottom: 20,
+  },
+  picker: {
+    height: 40,
+    width: 200,
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 5,
+    marginBottom: 10,
   },
 });
