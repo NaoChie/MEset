@@ -1,4 +1,4 @@
 module.exports = {
     preset: 'react-native',
-    setupFilesAfterEnv: ['./App.test.js'],
+    setupFilesAfterEnv: ['./tests/App.test.js'],
   };
