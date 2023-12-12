@@ -54,6 +54,7 @@ export default function App() {
   const [modalVisible, setModalVisible] = useState(false);
   var newBreakTime;
 
+  // Used to actually remove activity from list
   const deleteActivity = () => {
     if (selectedActivityToDelete) {
       const updatedActivities = activities.filter(activity => activity !== selectedActivityToDelete);
@@ -64,22 +65,27 @@ export default function App() {
       Alert.alert('No Activity Selected', 'Please select an activity to delete.');
     }
   };
+  // Used to notice alarm and set countdown
   const handleNotification = notification => {
     console.log('Received notification:', notification);
     setCountdown(15 * 60);
   };
+  // Used to change date for the alarm
   const handleDateChange = (event, selectedDate) => {
     setShowDateTimePicker(false);
     if (selectedDate) {
       setAlarmTime(selectedDate);
     }
   };
+  // Used to regenerate listed activities
   const regenerateRandomActivities = () => {
     setRandomActivities(getRandomActivities());
   };
+  // Used to show date picker
   const showPicker = () => {
     setShowDateTimePicker(true);
   };
+  // Used to add activity using setActivity function
   const addNewActivity = () => {
     if (newActivity.trim() !== '') {
       setActivities([...activities, newActivity]);
@@ -87,16 +93,20 @@ export default function App() {
       Alert.alert('Activity Deleted', `The activity "${newActivity}" has been added.`);
     }
   };
+  // Used to append newActivity into activities
   const setActivities = () => {
     activities.push(newActivity);
   };
+  // Used to delete all activities and push updatedActivvities in
   const setAllActivities = (updatedActivities) => {
     activities.length = 0;
     activities.push(...updatedActivities);
   }
+  // Doesn't work right now, wants to change break countdown
   const setNewBreakTime = (_, newBreakTime) => {
     updateBreakTime(newBreakTime);
   };
+  // Same as above
   const handleBreakTimeChange = (_, selectedTime) => {
     if (selectedTime) {
       setNewBreakTime(selectedTime);
@@ -109,7 +119,7 @@ export default function App() {
       setShowMenu(false);
     }
   };
-
+  // Sets and schedeules alarm notification
   const scheduleNotification = async () => {
     if (alarmTime) {
       const trigger = new Date(alarmTime);
@@ -156,12 +166,14 @@ export default function App() {
 
   // What to do after rendering
   useEffect(() => {
+    // Checks countdown and changes every second
     if (countdown > 0) {
       handleNotification()
       const countdownInterval = setInterval(() => {
         setCountdown(prevCountdown => prevCountdown - 1);
       }, 1000);
-
+      
+      // Checks if countdown is equal to 0
       return () => {
         clearInterval(countdownInterval);
         if (countdown === 0) {
@@ -180,6 +192,7 @@ export default function App() {
           style={styles.image}
         />
       </View>
+      {/* Break scheduler header */}
       <TextInput
         style={styles.input}
         placeholder="Select date & time for your next break"
@@ -187,6 +200,7 @@ export default function App() {
         editable={false}
         onTouchStart={showPicker}
       />
+      {/* Break scheduler */}
       {showDateTimePicker && (
         <DateTimePicker
           ref={breakTimePickerRef}
@@ -196,18 +210,22 @@ export default function App() {
           onChange={handleDateChange}
         />
       )}
+      {/* Break scheduler button */}
       <Button title="Schedule" onPress={scheduleNotification} />
+      {/* Random activites */}
       <Text style={styles.header}>Try one of these today...</Text>
       <View>
         {randomActivities.map((activity, index) => (
           <Text key={index}>{`\u2022 ${activity}`}</Text>
         ))}
       </View>
-
+      {/* Regenerate random activities */}
       <TouchableOpacity onPress={regenerateRandomActivities} style={styles.regenerateButton}>
         <Text style={styles.regenerateButtonText}>Regenerate</Text>
       </TouchableOpacity>
+      {/* Countdown text */}
       <Text style={styles.countdownText}>{`${Math.floor(countdown / 60)}:${countdown % 60} minutes left for your break!`}</Text>
+      {/* Menu */}
       {showMenu && (
         <View style={styles.container}>
           <TextInput
@@ -235,6 +253,7 @@ export default function App() {
           </TouchableOpacity>
         </View>
       )}
+      {/* Delete activity modal */}
       <Modal
         animationType="slide"
         transparent={true}
