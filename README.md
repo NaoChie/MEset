@@ -11,7 +11,7 @@
 ## Features
 
 - Date and time alarm scheduler
-- Random activity generator from preset list of "mindful, distraction-free, productive" activities
+- Random activity generator from preset list of "mindful, distraction-free, productive" activities (can add or delete activities)
 - Countdown for 15 minute breaks that are conducted once alarm is set off
 
 ## Getting Started
@@ -31,8 +31,6 @@
 7. Use phone camera to scan QR code found in terminal
 
 ## Future features/current bugs
-
-1. Notifications are not being recieved properly by token. Will prioritize so countdown can appear and be set at will.
-2. App will be split into two pages, where user will be first recieved by break scheduler, and then break activity/countdown.
-3. Alarm sounds will be amplified and played for longer periods of time.
-4. Recommended activities, set alarm, and break length will be editable.
+1. Alarm sounds will be amplified and played for longer periods of time.
+2. Break length and date/time will be editable (currently in progress, but does not work).
+3. At start of countdown, background will change or navigate to a second page. 
